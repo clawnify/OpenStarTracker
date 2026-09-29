@@ -1,0 +1,37 @@
+{
+  "name": "open-star-tracker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "clawnify dev",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "deploy": "clawnify deploy"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@clawnify/app": "^0.4.1",
+    "@clawnify/db": "^0.4.2",
+    "@clawnify/queue": "^0.1.1",
+    "@phosphor-icons/react": "^2.1.10",
+    "@tailwindcss/vite": "^4.3.3",
+    "hono": "^4.13.10",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260928.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "clawnify": "^0.20.0",
+    "typescript": "^7.0.2",
+    "vite": "^6.4.3",
+    "vitest": "^5.0.2",
+    "wrangler": "^4.143.0"
+  }
+}

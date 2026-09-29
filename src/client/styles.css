@@ -1,0 +1,186 @@
+@import "tailwindcss";
+
+/* Tokens are the platform design system's (DESIGN.md), verbatim. A rebrand
+   swaps values here and every component follows; nothing outside this file
+   hardcodes a colour. */
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-sunken: var(--sunken);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-border: var(--border);
+  --color-rule: var(--rule);
+  --color-ring: var(--ring);
+  --color-link: var(--link);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-on-primary: var(--on-primary);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-info: var(--info);
+  --color-info-tint: var(--info-tint);
+  --color-success: var(--success);
+  --color-success-tint: var(--success-tint);
+  --color-warning: var(--warning);
+  --color-warning-tint: var(--warning-tint);
+  --color-danger: var(--danger);
+  --color-danger-tint: var(--danger-tint);
+  /* Chart series: the category palette's `solid` role, one hue per measure,
+     the same hue as the nav section the measure belongs to. */
+  --color-stars: var(--stars);
+  --color-views: var(--views);
+  --color-clones: var(--clones);
+
+  --radius-xs: 0.25rem; /* chips */
+  --radius-sm: 0.5rem; /* buttons, inputs */
+  --radius-md: 0.75rem; /* cards, tiles, popovers */
+  --radius-lg: 1rem; /* modals */
+  --radius-xl: 1.5rem;
+}
+
+:root {
+  --background: #ffffff;
+  --surface: #ffffff;
+  --sunken: #f7f7f5;
+  --foreground: #1b1a19;
+  --muted: #646360;
+  --faint: #9a9893;
+  --border: #e5e3de;
+  --rule: #f1f1f1;
+  --ring: #1b1a19; /* focus is ink, never the accent */
+  --ring-halo: #edebe7;
+  --link: #1b1a19;
+  --primary: #1b1a19;
+  --primary-hover: #333130;
+  --on-primary: #ffffff;
+  --accent: #df3656;
+  --on-accent: #ffffff;
+  --info: #173ec4;
+  --info-tint: #ecf0f9;
+  --success: #2b5f3c;
+  --success-tint: #dbf9e2;
+  --warning: #664e27;
+  --warning-tint: #f9efdf;
+  --danger: #8a2f2d;
+  --danger-tint: #f9edec;
+  --stars: #9d7b2b; /* category H85 */
+  --views: #319562; /* category H157 */
+  --clones: #31918e; /* category H193 */
+  --shadow-raised: 0 0 2px rgba(28, 40, 64, 0.18), 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-floating: 0 0 0 1px rgba(28, 40, 64, 0.04), 0 4px 8px -4px rgba(28, 40, 64, 0.12),
+    0 4px 12px -2px rgba(24, 41, 75, 0.16);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #100f0e;
+    --surface: #161615;
+    --sunken: #222120;
+    --foreground: #efeeed;
+    --muted: #c0bdb9;
+    --faint: #82807c;
+    --border: #2e2e2c;
+    --rule: #2e2e2c;
+    --ring: #efeeed;
+    --ring-halo: #2e2e2c;
+    --link: #efeeed;
+    --primary: #efeeed;
+    --primary-hover: #d6d4d1;
+    --on-primary: #100f0e;
+    --accent: #e4415d;
+    --on-accent: #ffffff;
+    --info: #b5c4e5;
+    --info-tint: #12234f;
+    --success: #86da9e;
+    --success-tint: #1a2b1f;
+    --warning: #e5bd7e;
+    --warning-tint: #2d2518;
+    --danger: #e6b7b2;
+    --danger-tint: #3b1c1a;
+    --stars: #a28135;
+    --views: #3c9b69;
+    --clones: #3c9694;
+    /* In dark mode the drops disappear and the ring carries every level. */
+    --shadow-raised: inset 0 0 0 1px var(--border);
+    --shadow-floating: inset 0 0 0 1px var(--border);
+  }
+}
+
+html,
+body,
+#app {
+  height: 100dvh;
+}
+html {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+* {
+  scrollbar-color: var(--border) transparent;
+  scrollbar-width: thin;
+}
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Agent mode: every target grows to a finger's width. */
+[data-agent] button,
+[data-agent] select,
+[data-agent] input {
+  min-height: 2.75rem;
+}
+
+/* Signature 1: the edge is an inset ring, never a painted border. */
+@utility card {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+@utility raised {
+  box-shadow: var(--shadow-raised);
+}
+@utility floating {
+  box-shadow: var(--shadow-floating);
+}
+
+/* Signature 4: digits and totals stack. */
+@utility tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum", "cv01";
+}
+
+/* Loading is the shape of the answer. */
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+@utility skeleton {
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--sunken) 25%, var(--background) 50%, var(--sunken) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}

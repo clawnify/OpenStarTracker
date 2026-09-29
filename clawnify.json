@@ -1,0 +1,62 @@
+{
+  "$schema": "https://app.clawnify.com/schema/v1/clawnify.json",
+  "version": 1,
+  "name": "OpenStarTracker",
+  "description": "See how your open-source repos are doing. Point it at a GitHub user or organisation and it tracks every public repo: stars, forks and issues per day, star history rebuilt from the day each repo launched, and the views, clones, referrers and popular pages GitHub forgets after 14 days, recorded daily so you keep them.",
+  "icon": "icon.svg",
+  "tags": [
+    "github",
+    "open-source",
+    "analytics",
+    "stars",
+    "developer-tools",
+    "dashboard"
+  ],
+  "template": {
+    "displayName": "GitHub star tracker",
+    "category": "Analytics"
+  },
+  "app": {
+    "framework": "react+hono",
+    "database": true,
+    "storage": false
+  },
+  "env": {
+    "optional": [
+      "GITHUB_TOKEN"
+    ]
+  },
+  "api": {
+    "public_routes": [
+      {
+        "path": "/api/queue/sync",
+        "methods": [
+          "POST"
+        ]
+      }
+    ]
+  },
+  "deploy": {
+    "title": "Track your open-source repos",
+    "subtitle": "Stars, forks, views, clones and referrers for every public repo, with the history GitHub throws away.",
+    "prompts": [
+      {
+        "key": "github_account",
+        "label": "Which GitHub user or organisation should it track?",
+        "placeholder": "vercel",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "include_forks",
+        "label": "Should forks count?",
+        "type": "select",
+        "options": [
+          "No, only repos we started",
+          "Yes, forks too"
+        ]
+      }
+    ]
+  },
+  "agent": "agent.md"
+}
