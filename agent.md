@@ -55,8 +55,12 @@ days. The app records them daily, so its history outlives GitHub's window.
 
 - `GET /api/status` → `traffic`: `no_token` (no `GITHUB_TOKEN` set), `denied`
   (token set but cannot push to these repos), `partial` (some repos only), `ok`.
-- A token needs **Administration: read** on the repos (fine-grained), or push
-  access (classic). Organisations may have to approve a fine-grained token.
+- A fine-grained token needs the tracked account as **resource owner** (for an
+  organisation, the organisation, not a person), **All repositories**, and
+  **Administration: Read-only in the Repositories group** (not the
+  Organizations group). "Public repositories" never reads traffic. A classic
+  token needs push access. Organisations may have to approve the token.
+  `GET /api/status` → `traffic_error` carries GitHub's exact refusal.
 - A sync step that returns `processed: 0` with `remaining > 0` hit GitHub's
   hourly limit; the error names the reset time. Do not retry before it.
 

@@ -156,8 +156,9 @@ export function SettingsScreen({
           {status.traffic_error && (
             <div className="mb-4">
               <Banner tone="danger">
-                GitHub said: “{status.traffic_error.replace(/^\d+: /, "")}”. Changed the token since? Press Refresh to ask
-                again.
+                GitHub said: “{status.traffic_error.replace(/^\d+: /, "")}”. The usual causes: the token is owned by a person
+                instead of {s.owner}, it has “Public repositories” access, or Administration was added in the Organizations
+                group instead of Repositories. Changed the token since? Press Refresh to ask again.
               </Banner>
             </div>
           )}
@@ -167,11 +168,28 @@ export function SettingsScreen({
               <a className="text-link underline decoration-border underline-offset-2" href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer">
                 create a fine-grained token
               </a>{" "}
-              with <span className="text-foreground">{s.owner}</span> as the resource owner, an expiry of a year or less,{" "}
-              <span className="text-foreground">All repositories</span> (not “Public repositories”: that choice cannot carry any
-              permission), and <span className="text-foreground">Administration: Read-only</span> under repository permissions.
-              Nothing else is needed; every permission it gets is read-only. If the organisation requires approval, the new
-              permission only works once an owner approves it.
+              with these settings. Everything it gets is read-only.
+              <ul className="mt-1.5 grid list-disc gap-1 pl-5">
+                <li>
+                  <span className="text-foreground">Resource owner: {s.owner}</span>
+                  {s.owner_type === "Organization" && <>, the organisation itself, not your own account</>}.
+                </li>
+                <li>
+                  <span className="text-foreground">Repository access: All repositories.</span> “Public repositories” cannot carry
+                  the permission below, so traffic would never appear.
+                </li>
+                <li>
+                  <span className="text-foreground">Permissions: Administration, Read-only, in the Repositories group.</span>
+                  {s.owner_type === "Organization" && <> Not the Administration in the Organizations group, which is another permission.</>}
+                </li>
+                <li>An expiry of a year or less, if the organisation limits token lifetime.</li>
+              </ul>
+              {s.owner_type === "Organization" && (
+                <p className="mt-1.5">
+                  If {s.owner} requires approval for tokens, an owner approves it under the organisation’s Settings → Personal
+                  access tokens. Until then GitHub treats the token as public-only.
+                </p>
+              )}
             </li>
             <li>
               {status.scheduled ? (

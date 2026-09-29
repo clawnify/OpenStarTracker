@@ -52,15 +52,20 @@ The app needs a GitHub token, for two reasons:
    popular pages to someone who can push to the repo.
 
 Create a [fine-grained token](https://github.com/settings/personal-access-tokens/new)
-with the account as resource owner and:
+with:
 
-- **Repository access: All repositories.** Not "Public repositories": that
-  choice is a fixed read-only grant that cannot carry any permission, so stars
-  work and traffic never will.
-- **Repository permissions: Administration, Read-only.** Nothing else. Every
-  permission on the token is read-only.
-- **An expiry of a year or less** if the organisation sets a token lifetime
-  policy, and an owner's approval if it requires one.
+- **Resource owner: the account you track.** For an organisation, pick the
+  organisation itself, not your own account: a token you own cannot read an
+  organisation's traffic, and the owner cannot be changed later.
+- **Repository access: All repositories.** "Public repositories" is a fixed
+  read-only grant that cannot carry the permission below, so stars work and
+  traffic never will.
+- **Permissions: Administration, Read-only, in the Repositories group.** Not
+  the Administration in the Organizations group, which is a different
+  permission. Nothing else; every permission on the token is read-only.
+- **An expiry of a year or less** if the organisation limits token lifetime,
+  and an owner's approval if it requires one (until then GitHub treats the
+  token as public-only).
 
 Then set it as `GITHUB_TOKEN`: in Clawnify under Settings → Environment
 Variables, or as a Worker secret anywhere else. When GitHub still refuses,
