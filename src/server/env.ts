@@ -7,11 +7,12 @@ import type { Context } from "hono";
 export interface Bindings {
   DB: D1Database;
   /**
-   * A GitHub token, from the org's Environment Variables. Optional, but
-   * without one GitHub allows 60 requests an hour per IP address, shared with
-   * everyone else on that address, and never shows traffic. A fine-grained
-   * token needs "Administration: read" on the repos to read traffic; a classic
-   * token needs push access to them.
+   * A GitHub token, from the org's Environment Variables. Required in practice:
+   * without one GitHub allows 60 requests an hour per IP address, and a
+   * Worker's outbound address is shared with so many others that the allowance
+   * is usually spent before this app asks. It is also the only way to see
+   * traffic. A fine-grained token needs "Administration: read" on the repos; a
+   * classic token needs push access to them.
    */
   GITHUB_TOKEN?: string;
   /** Minted per org by the platform. Present in production, absent locally. */

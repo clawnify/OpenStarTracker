@@ -22,7 +22,7 @@
     "storage": false
   },
   "env": {
-    "optional": [
+    "required": [
       "GITHUB_TOKEN"
     ]
   },

@@ -55,7 +55,8 @@ export function FirstRun({ token, onSaved }: { token: boolean; onSaved: () => vo
         )}
         {!token && (
           <p className="mt-3 text-[0.8125rem] text-muted">
-            No GitHub token is set, so you will see stars, forks and issues but not views or clones. You can add one later.
+            No GitHub token is set yet. GitHub may refuse to answer without one, and it never shows views or clones
+            without one. Settings explains how to add it.
           </p>
         )}
         <button type="submit" className={`${primaryClass} mt-5 w-full`} disabled={busy || !owner.trim()}>

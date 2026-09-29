@@ -72,7 +72,7 @@ export function OverviewScreen({
         {error && <Banner tone="danger">{error}</Banner>}
         {status.traffic === "no_token" && (
           <Banner tone="info">
-            Stars and forks are coming from GitHub's public API. Views, clones and referrers need a GitHub token:{" "}
+            No GitHub token is set, so GitHub may stop answering and never shows views, clones or referrers:{" "}
             <button type="button" className="font-medium underline underline-offset-2" onClick={() => onGo({ view: "settings" })}>
               add one in Settings
             </button>

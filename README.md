@@ -42,13 +42,14 @@ the calls to GitHub's API.
 
 ## GitHub access
 
-Stars, forks and issues are public, so the app works without a token. Two
-reasons to add one anyway:
+The app needs a GitHub token, for two reasons:
 
-1. **Traffic is private.** GitHub only shows views, clones, referrers and
+1. **Rate limits.** Stars, forks and issues are public, but without a token
+   GitHub allows 60 requests an hour per IP address. A Cloudflare Worker shares
+   its outbound address with many others, so that allowance is usually gone
+   before the app asks for anything.
+2. **Traffic is private.** GitHub only shows views, clones, referrers and
    popular pages to someone who can push to the repo.
-2. **Rate limits.** Without a token GitHub allows 60 requests an hour per IP
-   address, shared with everyone else on that address.
 
 Create a [fine-grained token](https://github.com/settings/personal-access-tokens/new)
 with the account as resource owner, access to its public repositories, and
@@ -60,7 +61,7 @@ Worker secret anywhere else.
 
 ```bash
 pnpm install
-echo "GITHUB_TOKEN=github_pat_..." > .clawnify/.dev.vars   # optional
+echo "GITHUB_TOKEN=github_pat_..." > .clawnify/.dev.vars
 pnpm dev                                                   # http://localhost:5173
 ```
 

@@ -136,7 +136,12 @@ export function registerTracking(app: App) {
         },
       },
     },
-    responses: { 200: ok("Saved", SettingsSchema), 400: fail("Unknown account"), 403: fail("Not a member") },
+    responses: {
+      200: ok("Saved", SettingsSchema),
+      400: fail("Unknown account"),
+      403: fail("Not a member"),
+      429: fail("GitHub's hourly limit is spent; the message says until when"),
+    },
   });
 
   app.openapi(save, async (c) => {
@@ -149,6 +154,7 @@ export function registerTracking(app: App) {
       owner = await getOwner(github(c.env.GITHUB_TOKEN), login);
     } catch (err) {
       if (err instanceof GitHubError && err.status === 404) return c.json({ error: `GitHub has no account called “${login}”.` }, 400);
+      if (err instanceof GitHubError && err.resetAt) return c.json({ error: err.message }, 429);
       throw err;
     }
     const current = await settings();
