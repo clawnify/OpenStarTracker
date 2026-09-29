@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS repos (
   clones_14d          INTEGER,
   clone_uniques_14d   INTEGER,
   traffic_access      TEXT,                           -- 'ok' | 'denied' | null (never tried)
+  traffic_error       TEXT,                           -- GitHub's own words when it refused
   detail_synced_on    TEXT,                           -- UTC day traffic was last read
   -- Star history is rebuilt once from GitHub's weekly star history.
   -- `history_since` is the first day it covers, the day before the first star.

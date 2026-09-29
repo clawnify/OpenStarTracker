@@ -229,7 +229,12 @@ async function readTraffic(gh: GitHub, fullName: string, day: string): Promise<v
     // 403/404 here means this token cannot see the repo's traffic (it needs
     // write access). That is a fact about the token, not a failed sync.
     if (err instanceof GitHubError && !err.resetAt && (err.status === 403 || err.status === 404)) {
-      await run("UPDATE repos SET traffic_access = 'denied' WHERE full_name = ?", [fullName]);
+      // GitHub's message is kept: "why not" has several answers (no permission,
+      // an org approval still pending, a token policy) and only it knows which.
+      await run("UPDATE repos SET traffic_access = 'denied', traffic_error = ? WHERE full_name = ?", [
+        `${err.status}: ${err.message}`.slice(0, 300),
+        fullName,
+      ]);
       return;
     }
     throw err;
@@ -263,7 +268,7 @@ async function readTraffic(gh: GitHub, fullName: string, day: string): Promise<v
   );
 
   await run(
-    `UPDATE repos SET traffic_access = 'ok', views_14d = ?, view_uniques_14d = ?, clones_14d = ?, clone_uniques_14d = ?
+    `UPDATE repos SET traffic_access = 'ok', traffic_error = NULL, views_14d = ?, view_uniques_14d = ?, clones_14d = ?, clone_uniques_14d = ?
       WHERE full_name = ?`,
     [t.views.count, t.views.uniques, t.clones.count, t.clones.uniques, fullName],
   );

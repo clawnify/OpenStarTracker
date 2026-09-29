@@ -39,6 +39,7 @@ const StatusSchema = z
     traffic: z
       .enum(["ok", "partial", "denied", "unknown", "no_token"])
       .openapi({ description: "Whether the token can read traffic: for every tracked repo, some, none, or not tried yet" }),
+    traffic_error: z.string().nullable().openapi({ description: "What GitHub said when it last refused traffic, if it did" }),
     pending: z.number().openapi({ description: "Tracked repos not yet read today" }),
     tracked: z.number(),
     runs: z.array(RunSchema),
@@ -93,6 +94,9 @@ export function registerTracking(app: App) {
           : deniedN > 0
             ? "denied"
             : "unknown";
+    const refusal = await get<{ traffic_error: string }>(
+      `SELECT r.traffic_error FROM ${TRACKED} AND r.traffic_access = 'denied' AND r.traffic_error IS NOT NULL LIMIT 1`,
+    );
     const runs = await query<z.infer<typeof RunSchema>>(
       `SELECT id, started_at, finished_at, trigger, status, repos, api_calls, error
          FROM sync_runs ORDER BY started_at DESC LIMIT 5`,
@@ -102,6 +106,7 @@ export function registerTracking(app: App) {
         settings: shapeSettings(s),
         token: Boolean(c.env.GITHUB_TOKEN),
         traffic,
+        traffic_error: traffic === "denied" || traffic === "partial" ? (refusal?.traffic_error ?? null) : null,
         pending: s ? await pending() : 0,
         tracked: Number(access?.tracked ?? 0),
         runs,

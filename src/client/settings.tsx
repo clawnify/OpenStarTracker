@@ -153,6 +153,14 @@ export function SettingsScreen({
             </Badge>
           }
         >
+          {status.traffic_error && (
+            <div className="mb-4">
+              <Banner tone="danger">
+                GitHub said: “{status.traffic_error.replace(/^\d+: /, "")}”. Changed the token since? Press Refresh to ask
+                again.
+              </Banner>
+            </div>
+          )}
           <ol className="grid list-decimal gap-2 pl-5 text-sm text-muted">
             <li>
               On GitHub,{" "}

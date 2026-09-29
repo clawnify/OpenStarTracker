@@ -35,6 +35,7 @@ export interface Status {
   settings: Settings | null;
   token: boolean;
   traffic: "ok" | "partial" | "denied" | "unknown" | "no_token";
+  traffic_error: string | null;
   pending: number;
   tracked: number;
   runs: SyncRun[];
