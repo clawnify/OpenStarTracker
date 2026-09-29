@@ -59,15 +59,14 @@ CREATE TABLE IF NOT EXISTS repos (
   clone_uniques_14d   INTEGER,
   traffic_access      TEXT,                           -- 'ok' | 'denied' | null (never tried)
   detail_synced_on    TEXT,                           -- UTC day traffic was last read
-  -- Star history is rebuilt once from the stargazer list. `history_since` is
-  -- the first day it covers; a repo with more stars than one backfill reads
-  -- has a partial history that starts later than the repo does.
+  -- Star history is rebuilt once from GitHub's weekly star history.
+  -- `history_since` is the first day it covers, the day before the first star.
   history_backfilled  INTEGER NOT NULL DEFAULT 0,
   history_since       TEXT
 );
 
 -- Cumulative counters per repo per day. A 'snapshot' row is what the daily
--- sync saw; a 'backfill' row was rebuilt from stargazer timestamps and only
+-- sync saw; a 'backfill' row was rebuilt from GitHub's star history and only
 -- knows stars. A snapshot always wins over a backfill for the same day.
 CREATE TABLE IF NOT EXISTS repo_daily (
   full_name   TEXT NOT NULL,

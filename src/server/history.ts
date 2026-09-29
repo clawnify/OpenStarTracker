@@ -1,6 +1,6 @@
-// Pure arithmetic over counters: rebuilding a star curve from stargazer
-// timestamps, and turning sparse per-day rows into a continuous series. No I/O,
-// so every rule here is covered by history.test.ts.
+// Pure arithmetic over counters: rebuilding a star curve from GitHub's weekly
+// star history, and turning sparse per-day rows into a continuous series. No
+// I/O, so every rule here is covered by history.test.ts.
 
 import { daysBefore } from "./env.js";
 
@@ -10,32 +10,43 @@ export interface DayCount {
 }
 
 /**
- * The star count at the end of each day on which stars arrived, rebuilt from
- * the most recent stargazers.
+ * Stars given per UTC day, from GitHub's weekly star history. Each week starts
+ * on a Sunday and lists its seven days in order; days without stars are left
+ * out, and weeks may arrive in any order.
+ */
+export function weeksToDays(weeks: { week: number; days: number[] }[]): Map<string, number> {
+  const perDay = new Map<string, number>();
+  for (const w of weeks) {
+    w.days.forEach((n, i) => {
+      if (n > 0) {
+        const day = new Date((w.week + i * 86400) * 1000).toISOString().slice(0, 10);
+        perDay.set(day, (perDay.get(day) ?? 0) + n);
+      }
+    });
+  }
+  return perDay;
+}
+
+/**
+ * The star count at the end of each day on which stars arrived.
  *
  * Works backwards from `current`, the count GitHub reports today: the total at
- * the end of day D is `current` minus every star given after D. That makes a
- * partial read useful. Reading only the newest N stars still gives a correct
- * curve for the period they cover, and `since` says where that period starts.
+ * the end of day D is `current` minus every star given after D. That keeps the
+ * curve anchored to the real number even when the history is incomplete, and
+ * `since` says where the history starts.
  *
- * When `complete` (every stargazer was read) the curve also gains a zero on the
- * day before the first star, so it starts from nothing rather than mid-air.
- * Unstars are invisible to the stargazer list, so the rebuilt curve is the
- * history of the people who still star the repo. The daily snapshot is exact
- * from the day tracking starts.
+ * When `complete` (the history reaches the repo's first week) the curve also
+ * gains a zero on the day before the first star, so it starts from nothing
+ * rather than mid-air. Removed stars are not in GitHub's history, so the
+ * rebuilt curve is the history of the people who still star the repo. The
+ * daily snapshot is exact from the day tracking starts.
  */
 export function rebuildStars(
   current: number,
-  starredAt: string[],
+  perDay: Map<string, number>,
   complete: boolean,
 ): { rows: DayCount[]; since: string | null } {
-  if (starredAt.length === 0) return { rows: [], since: null };
-
-  const perDay = new Map<string, number>();
-  for (const at of starredAt) {
-    const day = at.slice(0, 10);
-    perDay.set(day, (perDay.get(day) ?? 0) + 1);
-  }
+  if (perDay.size === 0) return { rows: [], since: null };
   const days = [...perDay.keys()].sort().reverse();
 
   const rows: DayCount[] = [];

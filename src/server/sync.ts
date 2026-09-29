@@ -15,27 +15,18 @@ import {
   github,
   GitHubError,
   listRepos,
-  stargazerPage,
-  STARGAZERS_PER_PAGE,
+  starHistory,
   traffic,
   type GitHub,
   type Repo,
 } from "./github.js";
-import { rebuildStars } from "./history.js";
+import { rebuildStars, weeksToDays } from "./history.js";
 import { insertMany } from "./sql.js";
 
 /** Repos whose detail one step reads. */
 const BATCH = 10;
 /** Repos read at once inside a step. */
 const PARALLEL = 3;
-/**
- * Stargazer pages read to rebuild one repo's history: the newest 2,000 stars.
- * A larger repo's curve starts where those stars start (see `history_since`).
- */
-const BACKFILL_PAGES = 20;
-/** GitHub stops paginating stargazers after this page. */
-const MAX_STARGAZER_PAGE = 400;
-
 export interface Settings {
   owner: string;
   owner_type: string;
@@ -127,8 +118,10 @@ export async function syncStep(env: Bindings, trigger: "manual" | "schedule"): P
     for (let i = 0; i < batch.length; i += PARALLEL) {
       const results = await Promise.allSettled(batch.slice(i, i + PARALLEL).map((r) => readDetail(gh, r, day)));
       for (const res of results) {
-        if (res.status === "fulfilled") processed++;
-        else errors.push(res.reason instanceof Error ? res.reason.message : String(res.reason));
+        if (res.status === "fulfilled") {
+          processed++;
+          errors.push(...res.value);
+        } else errors.push(res.reason instanceof Error ? res.reason.message : String(res.reason));
       }
       // The hourly budget is shared by every repo in the account. Once GitHub
       // says it is spent, the rest of the batch would only collect the same
@@ -189,14 +182,31 @@ async function prune(day: string): Promise<void> {
   await run(`DELETE FROM sync_runs WHERE started_at < datetime('now', '-90 days')`);
 }
 
+/**
+ * Traffic and star history for one repo, each on its own. A part GitHub
+ * refuses (a permission this token lacks) is reported and skipped, and the repo
+ * still counts as read today, so one refusal can never stall the whole sync.
+ * Only a spent rate limit is thrown, which stops the step: every other repo
+ * would get the same answer until the reset.
+ */
 async function readDetail(
   gh: GitHub,
   repo: { full_name: string; stars: number; history_backfilled: number },
   day: string,
-): Promise<void> {
-  if (gh.authenticated) await readTraffic(gh, repo.full_name, day);
-  if (!repo.history_backfilled) await backfillStars(gh, repo.full_name, repo.stars);
+): Promise<string[]> {
+  const soft: string[] = [];
+  const attempt = async (what: string, part: () => Promise<void>) => {
+    try {
+      await part();
+    } catch (err) {
+      if (err instanceof GitHubError && err.resetAt) throw err;
+      soft.push(`${repo.full_name} ${what}: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  };
+  if (gh.authenticated) await attempt("traffic", () => readTraffic(gh, repo.full_name, day));
+  if (!repo.history_backfilled) await attempt("star history", () => backfillStars(gh, repo.full_name, repo.stars));
   await run("UPDATE repos SET detail_synced_on = ? WHERE full_name = ?", [day, repo.full_name]);
+  return soft;
 }
 
 async function readTraffic(gh: GitHub, fullName: string, day: string): Promise<void> {
@@ -248,27 +258,18 @@ async function readTraffic(gh: GitHub, fullName: string, day: string): Promise<v
 }
 
 /**
- * Rebuild the star curve once, from the newest stargazers backwards. Stargazers
- * come oldest first, so the newest are on the last pages: read from the last
- * page down, at most BACKFILL_PAGES of them.
+ * Rebuild the star curve once, from GitHub's weekly star history. Anchored to
+ * today's count, so an incomplete history still ends at the right number. If
+ * GitHub refuses (it answers 422 for some repos), this throws, the repo is
+ * left unbackfilled, and the next day's sync tries again.
  */
 async function backfillStars(gh: GitHub, fullName: string, stars: number): Promise<void> {
-  const pages = Math.ceil(stars / STARGAZERS_PER_PAGE);
-  if (pages === 0 || pages > MAX_STARGAZER_PAGE) {
-    // Nothing to rebuild, or the newest stars sit past the last page GitHub
-    // will serve. Either way the curve starts at the first snapshot.
+  if (stars === 0) {
     await run("UPDATE repos SET history_backfilled = 1, history_since = NULL WHERE full_name = ?", [fullName]);
     return;
   }
-  const lowest = Math.max(1, pages - BACKFILL_PAGES + 1);
-  const wanted = Array.from({ length: pages - lowest + 1 }, (_, i) => pages - i);
-  const starredAt: string[] = [];
-  for (let i = 0; i < wanted.length; i += 5) {
-    const got = await Promise.all(wanted.slice(i, i + 5).map((p) => stargazerPage(gh, fullName, p)));
-    for (const g of got) starredAt.push(...g.stars);
-  }
-
-  const { rows, since } = rebuildStars(stars, starredAt, lowest === 1);
+  const { weeks, complete } = await starHistory(gh, fullName);
+  const { rows, since } = rebuildStars(stars, weeksToDays(weeks), complete);
   await insertMany(
     "repo_daily",
     ["full_name", "day", "stars", "source"],

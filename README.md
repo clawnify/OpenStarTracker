@@ -16,7 +16,7 @@ Point it at a GitHub user or organisation and it tracks every public repo.
 ## What it shows
 
 - **Stars over time**, per repo and for the whole account. The first sync
-  rebuilds each repo's curve from GitHub's stargazer list, so you get history
+  rebuilds each repo's curve from GitHub's star history, so you get history
   from day one, not from the day you installed it.
 - **Who is rising**: stars gained this week and this month, ranked.
 - **Views and clones per day**, kept long after GitHub's 14-day window closes.

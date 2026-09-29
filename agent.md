@@ -1,7 +1,7 @@
 # OpenStarTracker: how to run this app
 
 Tracks how one GitHub account's public repos are doing: stars, forks and open
-issues per day, star history rebuilt from GitHub's stargazer list, and the
+issues per day, star history rebuilt from GitHub back to each repo's first star, and the
 views, clones, referrers and popular pages that GitHub itself only keeps for 14
 days. The app records them daily, so its history outlives GitHub's window.
 

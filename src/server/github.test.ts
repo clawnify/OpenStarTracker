@@ -1,14 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { github, GitHubError, hasNext, lastPage } from "./github";
+import { github, GitHubError, hasNext } from "./github";
 import { chunkRows } from "./sql";
 
 describe("Link header", () => {
-  const link =
-    '<https://api.github.com/repositories/1/stargazers?per_page=100&page=2>; rel="next", <https://api.github.com/repositories/1/stargazers?per_page=100&page=7>; rel="last"';
-  it("finds the last page", () => expect(lastPage(link)).toBe(7));
-  it("knows when there is a next page", () => expect(hasNext(link)).toBe(true));
-  it("handles a single page", () => {
-    expect(lastPage(null)).toBeNull();
+  it("knows when there is a next page", () => {
+    expect(hasNext('<https://api.github.com/x?page=2>; rel="next", <https://api.github.com/x?page=7>; rel="last"')).toBe(true);
+    expect(hasNext('<https://api.github.com/x?page=1>; rel="prev"')).toBe(false);
     expect(hasNext(null)).toBe(false);
   });
 });

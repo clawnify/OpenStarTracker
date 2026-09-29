@@ -112,7 +112,7 @@ export function RepoScreen({
           title="Stars over time"
           hint={
             r?.history_since
-              ? `Rebuilt from GitHub's stargazer list back to ${longDay(r.history_since)}, then recorded daily.`
+              ? `Rebuilt from GitHub's star history back to ${longDay(r.history_since)}, then recorded daily.`
               : "Recorded daily from the day tracking began."
           }
         >

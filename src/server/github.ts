@@ -61,13 +61,6 @@ export function github(token: string | undefined, fetcher: typeof fetch = fetch)
   };
 }
 
-/** The page number of `rel="last"` in a Link header, or null when there is none. */
-export function lastPage(link: string | null): number | null {
-  if (!link) return null;
-  const m = link.match(/<[^>]*[?&]page=(\d+)[^>]*>;\s*rel="last"/);
-  return m ? Number(m[1]) : null;
-}
-
 export function hasNext(link: string | null): boolean {
   return Boolean(link && /rel="next"/.test(link));
 }
@@ -141,15 +134,35 @@ export async function listRepos(gh: GitHub, login: string): Promise<Repo[]> {
   return out;
 }
 
-export const STARGAZERS_PER_PAGE = 100;
+export interface StarWeek {
+  /** Unix seconds: the start of the week (a Sunday). */
+  week: number;
+  total: number;
+  /** Stars given on each day of the week, Sunday first. */
+  days: number[];
+}
 
-/** One page of stargazers with the time each star was given. */
-export async function stargazerPage(gh: GitHub, fullName: string, page: number) {
-  const { data, link } = await gh.get<{ starred_at: string }[]>(
-    `/repos/${fullName}/stargazers?per_page=${STARGAZERS_PER_PAGE}&page=${page}`,
-    "application/vnd.github.star+json",
-  );
-  return { stars: data.map((s) => s.starred_at), last: lastPage(link) };
+/** Weeks per page asked for; the pages are followed until GitHub stops linking. */
+const HISTORY_PER_PAGE = 100;
+/** A backstop far past any real repo: 30 pages is about 57 years of weeks. */
+const HISTORY_MAX_PAGES = 30;
+
+/**
+ * A repo's stars grouped by week, back to the week it was created, newest
+ * first. One call per 100 weeks whatever the star count, and it needs only
+ * Metadata: read, which any token that can see the repo has. (The stargazer
+ * list with timestamps needs more than a public-only fine-grained token gets.)
+ */
+export async function starHistory(gh: GitHub, fullName: string): Promise<{ weeks: StarWeek[]; complete: boolean }> {
+  const weeks: StarWeek[] = [];
+  for (let page = 1; page <= HISTORY_MAX_PAGES; page++) {
+    const { data, link } = await gh.get<StarWeek[]>(
+      `/repos/${fullName}/stargazers/history?per_page=${HISTORY_PER_PAGE}&page=${page}`,
+    );
+    weeks.push(...data);
+    if (!hasNext(link) || data.length === 0) return { weeks, complete: true };
+  }
+  return { weeks, complete: false };
 }
 
 /**

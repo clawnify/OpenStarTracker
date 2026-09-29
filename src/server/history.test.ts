@@ -1,13 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { carryForward, dayRange, gained, rebuildStars, totalSeries } from "./history";
+import { carryForward, dayRange, gained, rebuildStars, totalSeries, weeksToDays } from "./history";
+
+const perDay = (entries: [string, number][]) => new Map(entries);
 
 describe("rebuildStars", () => {
   it("works backwards from today's count and starts from zero when every star was read", () => {
-    const { rows, since } = rebuildStars(
-      4,
-      ["2026-01-01T10:00:00Z", "2026-01-01T12:00:00Z", "2026-01-05T09:00:00Z", "2026-02-10T00:00:00Z"],
-      true,
-    );
+    const { rows, since } = rebuildStars(4, perDay([["2026-01-01", 2], ["2026-01-05", 1], ["2026-02-10", 1]]), true);
     expect(rows).toEqual([
       { day: "2025-12-31", stars: 0 },
       { day: "2026-01-01", stars: 2 },
@@ -18,8 +16,8 @@ describe("rebuildStars", () => {
   });
 
   it("keeps a partial read anchored to today's count, not to zero", () => {
-    // 1,000 stars, but only the newest three were read.
-    const { rows, since } = rebuildStars(1000, ["2026-03-01T00:00:00Z", "2026-03-02T00:00:00Z", "2026-03-02T05:00:00Z"], false);
+    // 1,000 stars, but the history only reaches back two days.
+    const { rows, since } = rebuildStars(1000, perDay([["2026-03-01", 1], ["2026-03-02", 2]]), false);
     expect(rows).toEqual([
       { day: "2026-03-01", stars: 998 },
       { day: "2026-03-02", stars: 1000 },
@@ -28,13 +26,34 @@ describe("rebuildStars", () => {
   });
 
   it("never goes negative when stars were removed after they were listed", () => {
-    // The listing said 1, but two stargazers came back.
-    const { rows } = rebuildStars(1, ["2026-01-01T00:00:00Z", "2026-01-02T00:00:00Z"], true);
+    // The listing said 1, but the history holds two.
+    const { rows } = rebuildStars(1, perDay([["2026-01-01", 1], ["2026-01-02", 1]]), true);
     expect(rows.every((r) => r.stars >= 0)).toBe(true);
   });
 
   it("has nothing to say about a repo without stars", () => {
-    expect(rebuildStars(0, [], true)).toEqual({ rows: [], since: null });
+    expect(rebuildStars(0, new Map(), true)).toEqual({ rows: [], since: null });
+  });
+});
+
+describe("weeksToDays", () => {
+  it("spreads each week over its days from Sunday, skipping empty ones", () => {
+    // GitHub's answer for a repo, newest week first. 1774742400 is Sun 2026-03-29.
+    const days = weeksToDays([
+      { week: 1774742400 + 7 * 86400, days: [0, 2, 0, 0, 0, 0, 1] },
+      { week: 1774742400, days: [0, 0, 0, 0, 0, 0, 1] },
+    ]);
+    expect([...days].sort()).toEqual([
+      ["2026-04-04", 1],
+      ["2026-04-06", 2],
+      ["2026-04-11", 1],
+    ]);
+  });
+
+  it("feeds rebuildStars a curve that ends at today's count", () => {
+    const { rows } = rebuildStars(4, weeksToDays([{ week: 1774742400, days: [1, 0, 0, 3, 0, 0, 0] }]), true);
+    expect(rows.at(0)).toEqual({ day: "2026-03-28", stars: 0 });
+    expect(rows.at(-1)).toEqual({ day: "2026-04-01", stars: 4 });
   });
 });
 
