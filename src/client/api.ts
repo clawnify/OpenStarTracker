@@ -135,7 +135,7 @@ export const api = {
   status: () => request<Status>("/api/status"),
   saveSettings: (body: { owner: string; include_forks?: boolean; include_archived?: boolean }) =>
     request<Settings>("/api/settings", { method: "PUT", body: JSON.stringify(body) }),
-  syncStep: () => request<Step>("/api/sync", { method: "POST" }),
+  syncStep: (fresh: boolean) => request<Step>(`/api/sync${fresh ? "?fresh=1" : ""}`, { method: "POST" }),
   overview: (range: Range) => request<Overview>(`/api/overview?range=${range}`),
   repos: (q: { sort: Sort; search: string; hidden?: boolean; page?: number }) => {
     const p = new URLSearchParams({ sort: q.sort, limit: "100", page: String(q.page ?? 1) });

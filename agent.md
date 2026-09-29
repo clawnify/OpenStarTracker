@@ -24,6 +24,8 @@ days. The app records them daily, so its history outlives GitHub's window.
    A 400 means GitHub has no such account: ask the owner to check the spelling.
 2. `POST /api/sync` and repeat while `remaining` is above 0. The first run
    reads every repo and rebuilds star history, so it takes several calls.
+   After the owner changes the token, start with `POST /api/sync?fresh=1`:
+   without it, repos already read today are not asked again.
 3. Tell the owner the app is tracking and how many repos it found. If
    `GET /api/status` says `token: false`, tell them it needs a `GITHUB_TOKEN`:
    without one GitHub usually refuses the app outright (a 429 naming the

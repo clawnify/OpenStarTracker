@@ -86,10 +86,22 @@ export async function pending(): Promise<number> {
   return Number(row?.n ?? 0);
 }
 
-export async function syncStep(env: Bindings, trigger: "manual" | "schedule"): Promise<StepResult> {
+export async function syncStep(
+  env: Bindings,
+  trigger: "manual" | "schedule",
+  opts: { fresh?: boolean } = {},
+): Promise<StepResult> {
   const s = await settings();
   if (!s) {
     return { status: "failed", listed: null, processed: 0, remaining: 0, apiCalls: 0, errors: ["Choose a GitHub account to track first."] };
+  }
+  if (opts.fresh) {
+    // Start the day over: re-list, and re-read every repo even if it was read
+    // earlier today. This is what makes Refresh answer to a token whose
+    // permissions just changed, instead of reporting yesterday's refusal.
+    // The list is forced below rather than cleared here: clearing it would
+    // empty every view until a new listing succeeds.
+    await run("UPDATE repos SET detail_synced_on = NULL WHERE full_name LIKE ? || '/%'", [s.owner]);
   }
 
   const id = crypto.randomUUID();
@@ -101,7 +113,7 @@ export async function syncStep(env: Bindings, trigger: "manual" | "schedule"): P
   let processed = 0;
 
   try {
-    if (s.listed_on !== day) {
+    if (opts.fresh || s.listed_on !== day) {
       const repos = await listRepos(gh, s.owner);
       await recordListing(repos, day);
       await prune(day);

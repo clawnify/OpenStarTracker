@@ -181,7 +181,12 @@ export function registerTracking(app: App) {
     tags: ["Tracking"],
     summary: "Read GitHub now: one bounded step",
     description:
-      "Lists the repos (once a day) and reads traffic and star history for the next few. Repeat while `remaining` is above 0. A daily sync runs on its own, so call this only when fresh numbers are wanted now.",
+      "Lists the repos (once a day) and reads traffic and star history for the next few. Repeat while `remaining` is above 0. Pass `fresh=1` on the first call to re-read every repo even if it was read today (after a token change, for instance); leave it off the calls that follow. A daily sync runs on its own, so call this only when fresh numbers are wanted now.",
+    request: {
+      query: z.object({
+        fresh: z.enum(["0", "1"]).optional().openapi({ description: "1 = start over and re-read every repo" }),
+      }),
+    },
     responses: { 200: ok("One step", StepSchema), 202: ok("A step is already running", StepSchema), 403: fail("Not a member") },
   });
 
@@ -193,7 +198,7 @@ export function registerTracking(app: App) {
         202,
       );
     }
-    const r = await syncStep(c.env, "manual");
+    const r = await syncStep(c.env, "manual", { fresh: c.req.valid("query").fresh === "1" });
     return c.json(
       { status: r.status, listed: r.listed, processed: r.processed, remaining: r.remaining, api_calls: r.apiCalls, errors: r.errors },
       200,

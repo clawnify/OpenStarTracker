@@ -72,13 +72,17 @@ export function App() {
     running.current = true;
     setSync({ running: true, done: 0, total: 0, error: null });
     let done = 0;
+    // The first step starts over, so pressing Refresh always re-reads every
+    // repo, including ones already read today; the rest continue from there.
+    let fresh = true;
     try {
       for (let guard = 0; guard < 200; guard++) {
-        const step = await api.syncStep();
+        const step = await api.syncStep(fresh);
         if (step.status === "in-progress") {
           await new Promise((r) => setTimeout(r, 3000));
           continue;
         }
+        fresh = false;
         done += step.processed;
         setSync({ running: true, done, total: done + step.remaining, error: null });
         if (step.status === "failed" || (step.remaining > 0 && step.processed === 0)) {
