@@ -167,9 +167,11 @@ export function SettingsScreen({
               <a className="text-link underline decoration-border underline-offset-2" href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer">
                 create a fine-grained token
               </a>{" "}
-              with <span className="text-foreground">{s.owner}</span> as the resource owner, access to all its public repositories, and{" "}
-              <span className="text-foreground">Administration: read</span> under repository permissions. Nothing else is needed. An
-              organisation may have to approve it.
+              with <span className="text-foreground">{s.owner}</span> as the resource owner, an expiry of a year or less,{" "}
+              <span className="text-foreground">All repositories</span> (not “Public repositories”: that choice cannot carry any
+              permission), and <span className="text-foreground">Administration: Read-only</span> under repository permissions.
+              Nothing else is needed; every permission it gets is read-only. If the organisation requires approval, the new
+              permission only works once an owner approves it.
             </li>
             <li>
               {status.scheduled ? (
