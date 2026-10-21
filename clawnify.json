@@ -1,7 +1,7 @@
 {
   "$schema": "https://app.clawnify.com/schema/v1/clawnify.json",
   "version": 1,
-  "name": "OpenStarTracker",
+  "name": "GitHub stars",
   "description": "See how your open-source repos are doing. Point it at a GitHub user or organisation and it tracks every public repo: stars, forks and issues per day, star history rebuilt from the day each repo launched, and the views, clones, referrers and popular pages GitHub forgets after 14 days, recorded daily so you keep them.",
   "icon": "icon.svg",
   "tags": [
