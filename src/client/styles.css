@@ -65,7 +65,9 @@
   --warning-tint: #f9efdf;
   --danger: #8a2f2d;
   --danger-tint: #f9edec;
-  --stars: #9d7b2b; /* category H85 */
+  /* A red between the category palette's H13 and H49, at its solid role:
+     oklch(0.60, 85% of the gamut's chroma, 33). */
+  --stars: #d9462a;
   --views: #319562; /* category H157 */
   --clones: #31918e; /* category H193 */
   --shadow-raised: 0 0 2px rgba(28, 40, 64, 0.18), 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -99,7 +101,7 @@
     --warning-tint: #2d2518;
     --danger: #e6b7b2;
     --danger-tint: #3b1c1a;
-    --stars: #a28135;
+    --stars: #de5034;
     --views: #3c9b69;
     --clones: #3c9694;
     /* In dark mode the drops disappear and the ring carries every level. */

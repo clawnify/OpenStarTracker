@@ -117,7 +117,7 @@ export function RepoScreen({
           }
         >
           {!data ? (
-            <div className="skeleton h-[220px]" />
+            <div className="skeleton h-[280px]" />
           ) : data.stars.length < 2 ? (
             <Empty title="Not enough history yet" hint="The curve starts once there are two days to connect." />
           ) : (

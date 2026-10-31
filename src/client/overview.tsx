@@ -117,7 +117,7 @@ export function OverviewScreen({
           action={<Segmented label="Time range" value={range} options={RANGES} onChange={setRange} />}
         >
           {!data ? (
-            <div className="skeleton h-[220px]" />
+            <div className="skeleton h-[280px]" />
           ) : firstSync ? (
             <Empty title="Reading your repos" hint="The first read rebuilds each repo's star history, so the curve fills in as it goes." />
           ) : (

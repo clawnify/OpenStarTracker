@@ -9,6 +9,16 @@ export function num(n: number | null | undefined): string {
   return Math.abs(n) >= 10_000 ? compact.format(n) : whole.format(n);
 }
 
+/**
+ * Axis labels: 2K, 2.5K, 1M, since an axis needs the scale, not the count.
+ * Ticks closer together than that can show (12,950 and 12,960 both read 13K)
+ * are written out in full instead.
+ */
+export function axisLabels(ticks: number[]): string[] {
+  const short = ticks.map((n) => (Math.abs(n) >= 1_000 ? compact.format(n) : whole.format(n)));
+  return new Set(short).size === short.length ? short : ticks.map((n) => whole.format(n));
+}
+
 /** +12, −3, 0, or a dash when the value is unknown. */
 export function delta(n: number | null | undefined): string {
   if (n === null || n === undefined) return "—";
